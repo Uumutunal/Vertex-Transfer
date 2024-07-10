@@ -4,6 +4,7 @@ from mathutils import kdtree, Vector
 from bpy.types import (Panel, Operator)
 import ctypes as ct
 import numpy as np
+import time
 
 
 bl_info = {
@@ -25,6 +26,7 @@ def index_transfer(src_obj, trgt_obj):
     sourceObj = src_obj
     targetObj = trgt_obj
     
+    start_time = time.time()
     kdtree_c = ct.WinDLL(r"C:\Program Files (x86)\Blender Dosyaları\Scripting\MultiresDelLower\KDTree\x64\Release\KDTree.dll")
     # Define the function signatures
     kdtree_c.insert.argtypes = (ct.c_float, ct.c_float, ct.c_float, ct.c_int)
@@ -40,6 +42,17 @@ def index_transfer(src_obj, trgt_obj):
     kdtree_c.dist.restype = ct.c_int
     kdtree_c.init()
     kdtree_c.insert(999, 999, 999, -1)
+    
+    kdtree_c.initDict.argtypes = None
+    kdtree_c.initDict.restype = None 
+    
+    kdtree_c.addToDict.argtypes = (ct.c_float, ct.c_float, ct.c_int)
+    kdtree_c.addToDict.restype = None
+    
+    kdtree_c.findInDict.argtypes = (ct.c_float, ct.c_float)
+    kdtree_c.findInDict.restype = ct.c_int 
+    
+    #kdtree_c.initDict()
     
     #kdtree_c.find.restype = ct.c_int
     #kdtree_c.find.argtypes = [ct.c_float]
@@ -69,7 +82,9 @@ def index_transfer(src_obj, trgt_obj):
         
         ind = ct.c_int(vert.index)
         
-        kdtree_c.insert(i_x, i_y, i_z, ind)
+        kdtree_c.addToDict(i_x,i_y,ind)
+        
+        
         '''
         print("######")
         print(i_x, i_y, i_z, ind)
@@ -82,8 +97,8 @@ def index_transfer(src_obj, trgt_obj):
         src_obj_kd_verts.balance()
         co, index, dist = src_obj_kd_verts.find(uv_co)
         print("kd: ", index)
+        print("dict: ", kdtree_c.findInDict(i_x,i_y))
         '''
-
 
         
 
@@ -101,7 +116,7 @@ def index_transfer(src_obj, trgt_obj):
     
     bm_trg = bmesh.new()
     bm_trg.from_mesh(trgt_obj.data)
-    src_obj_kd_verts.balance()
+    ##src_obj_kd_verts.balance()
     
     #Loop through the target object and find matching vertecies
     for vert in bm_trg.verts:
@@ -110,20 +125,25 @@ def index_transfer(src_obj, trgt_obj):
         uv_coords = vert.link_loops[0][uv_layer].uv
 
         uv_co = (uv_coords.x,uv_coords.y,0)
-        co, index, dist = src_obj_kd_verts.find(uv_co)
+        ##co, index, dist = src_obj_kd_verts.find(uv_co)
         
         
         i_x = ct.c_float(uv_co[0])
         i_y = ct.c_float(uv_co[1])
         i_z = ct.c_float(uv_co[2])
-
+        
+        #print("############")
         #vert.index = kdtree_c.dist(i_x, i_y, i_z)
         #a = kdtree_c.dist(i_x, i_y, i_z)
+        #print("dict: ", kdtree_c.findInDict(i_x,i_y))
+        
+        vert.index = kdtree_c.findInDict(i_x,i_y)
         
         #If the uv coordinates matches, change the vertex index
-        if dist < 0.1:
-            #vert.index = index
-            vert.index = kdtree_c.dist(i_x, i_y, i_z)
+        ##if dist < 0.1:
+            ##vert.index = index
+            #print("kdtree: ", index)
+            #vert.index = kdtree_c.dist(i_x, i_y, i_z)
             
             #print("find: ", kdtree_c.dist(i_x, i_y, i_z))
             #print("kd: ", index)
@@ -135,6 +155,11 @@ def index_transfer(src_obj, trgt_obj):
     bm_trg.to_mesh(targetObj.data)
     bm_trg.free()
     bm_src.free()
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Execution Time:", execution_time, "seconds")
+    print("FINISHED")
     return {"FINISHED"}
 
 
