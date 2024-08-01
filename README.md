@@ -13,7 +13,7 @@ This addon provides tools for managing multiresolution meshes in Blender. It all
 
 ## Installation
 
-1. Download the `MultiResDeleteLower_dll.py` script.
+1. Download the `MultiResDeleteLower.py` script.
 2. Open Blender.
 3. Go to `Edit > Preferences > Add-ons`.
 4. Click `Install...` and select the downloaded script.
