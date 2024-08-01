@@ -165,13 +165,20 @@ class DeleteLower(Operator):
 
 
 class TransferVertexIndex(Operator):
-    """Copy vertex order from active object to selected object"""
+    """Copy vertex order from selected object to active object"""
     bl_idname = "object.copy_index"
     bl_label = "Transfer Vertex Order"
     
     def execute(self, context):
         
-        print("")
+        selected_objects = bpy.context.selected_objects
+        active_object = selected_objects[0]
+        
+        if len(selected_objects) > 2:
+            return {'FINISHED'}    
+        
+        index_transfer(selected_objects[1], active_object)
+        
         return {'FINISHED'}    
 
 
