@@ -5,13 +5,11 @@ from bpy.types import (Panel, Operator)
 
 bl_info = {
     "name": "Multiresolution - Delete Lower",
-    "author": "Your Name Here",
+    "author": "Umut Unal",
     "version": (1, 0),
     "blender": (3, 6, 2),
     "location": "Sidebar (N) -> Tools panel",
     "description": "Deletes lower subdivision levels",
-    "warning": "",
-    "doc_url": "",
     "category": "Add Mesh",
 }
 
@@ -66,10 +64,10 @@ def index_transfer(src_obj, trgt_obj):
 
 
 #Turn off the smoothing before applying multires modifier in order to keep the uv's exact
-def apply_multires():
-    bpy.context.object.modifiers["Multires"].uv_smooth = 'NONE'
-    bpy.context.object.modifiers["Multires"].boundary_smooth = 'PRESERVE_CORNERS'
-    bpy.ops.object.modifier_apply(modifier="Multires", report=True)
+def apply_multires(modifierName):
+    bpy.context.object.modifiers[modifierName].uv_smooth = 'NONE'
+    bpy.context.object.modifiers[modifierName].boundary_smooth = 'PRESERVE_CORNERS'
+    bpy.ops.object.modifier_apply(modifier=modifierName, report=True)
 
 
 
@@ -77,14 +75,28 @@ def del_lower():
     objs = []
     active_obj = bpy.context.active_object
     
-    bpy.context.object.modifiers["Multires"].uv_smooth = 'NONE'
-    bpy.context.object.modifiers["Multires"].boundary_smooth = 'PRESERVE_CORNERS'
+    objModifier = None
+    modifierName = ""
+
+    for modifier in active_obj.modifiers:
+        
+        if modifier.type == "MULTIRES":
+            objModifier = modifier
+            modifierName = modifier.name
+            break
+        
+    
+    if objModifier == None:
+        return {'FINISHED'}
+       
+    bpy.context.object.modifiers[modifierName].uv_smooth = 'NONE'
+    bpy.context.object.modifiers[modifierName].boundary_smooth = 'PRESERVE_CORNERS'
     
     #The subdivision level to be deleted
-    del_lower = bpy.context.object.modifiers["Multires"].levels
+    del_lower = bpy.context.object.modifiers[modifierName].levels
     
     #Highest subdivision level
-    del_lower_duplicated = bpy.context.object.modifiers["Multires"].render_levels
+    del_lower_duplicated = bpy.context.object.modifiers[modifierName].render_levels
         
 
     #dup1
@@ -98,14 +110,14 @@ def del_lower():
     bpy.ops.object.duplicate(linked=0,mode='TRANSLATION') 
     duplicate2_obj = bpy.context.active_object
     duplicate2_obj.name = "dup2"
-    apply_multires()
+    apply_multires(modifierName)
     objs.append(duplicate2_obj)
     #
 
     
     bpy.context.view_layer.objects.active = duplicate_obj
-    bpy.context.object.modifiers["Multires"].levels = del_lower
-    apply_multires()
+    bpy.context.object.modifiers[modifierName].levels = del_lower
+    apply_multires(modifierName)
     
 
     bpy.ops.object.modifier_add(type='MULTIRES')
@@ -113,12 +125,12 @@ def del_lower():
     bpy.context.object.modifiers["Multires"].boundary_smooth = 'PRESERVE_CORNERS'
     for i in range(del_lower, del_lower_duplicated):
         bpy.ops.object.multires_subdivide(modifier="Multires", mode='CATMULL_CLARK')
-    apply_multires()
+    apply_multires("Multires")
     
 
     bpy.context.view_layer.objects.active = active_obj
     
-    apply_multires()
+    apply_multires(modifierName)
     
     bpy.ops.object.modifier_add(type='MULTIRES')
     bpy.context.object.modifiers["Multires"].uv_smooth = 'NONE'
@@ -147,6 +159,8 @@ def del_lower():
 
     bpy.context.object.modifiers["Multires"].uv_smooth = 'PRESERVE_BOUNDARIES'
     bpy.context.object.modifiers["Multires"].boundary_smooth = 'ALL'
+    
+    bpy.context.object.modifiers["Multires"].name = modifierName
 
 
 
