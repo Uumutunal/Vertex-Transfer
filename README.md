@@ -13,7 +13,7 @@ This addon provides tools for managing multiresolution meshes in Blender. It all
 
 ## Installation
 
-1. Download the `MultiResDeleteLower5_dll.py` script.
+1. Download the `MultiResDeleteLower_dll.py` script.
 2. Open Blender.
 3. Go to `Edit > Preferences > Add-ons`.
 4. Click `Install...` and select the downloaded script.
@@ -37,11 +37,11 @@ This addon provides tools for managing multiresolution meshes in Blender. It all
 
 ## Detailed Code Description
 
-### `MultiResDeleteLower5_dll.py`
+### `MultiResDeleteLower.py`
 
 - **Imports and Info Block**: Necessary imports and Blender addon metadata.
 - **`index_transfer` Function**: 
-  - Transfers vertex index order from the source object to the target object using KDTree and a DLL for distance calculations.
+  - Transfers vertex index order from the source object to the target object using KDTree for distance calculations.
   - Initializes and populates the KDTree with vertex UV coordinates and indices.
   - Finds and matches vertices in the target object based on the closest UV coordinates.
 - **`apply_multires` Function**: Turns off UV and boundary smoothing, then applies the multiresolution modifier.
@@ -57,7 +57,6 @@ This addon provides tools for managing multiresolution meshes in Blender. It all
 ## Dependencies
 
 - Blender 3.6.2 or later
-- KDTree DLL for distance calculations
 
 ## License
 
